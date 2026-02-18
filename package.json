@@ -22,6 +22,7 @@
 		"@tailwindcss/forms": "^0.5.11",
 		"@tailwindcss/typography": "^0.5.19",
 		"@tailwindcss/vite": "^4.1.18",
+		"@types/file-saver": "^2.0.7",
 		"@types/node": "^24",
 		"autoprefixer": "^10.4.24",
 		"daisyui": "^5.5.18",
@@ -41,6 +42,8 @@
 		"vite": "^7.3.1"
 	},
 	"dependencies": {
-		"@supabase/supabase-js": "^2.96.0"
+		"@supabase/supabase-js": "^2.96.0",
+		"file-saver": "^2.0.5",
+		"jszip": "^3.10.1"
 	}
 }
