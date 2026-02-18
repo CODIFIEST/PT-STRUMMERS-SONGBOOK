@@ -132,13 +132,17 @@
 		<div class="header-bar">
 			<div>
 				<h1 class="site-title">PT Strummers Songbook</h1>
-				<p class="song-count">
-					{#if searchQuery.trim()}
-						{filteredSongs.length} of {data.songs.length} songs
-					{:else}
-						{data.songs.length} Songs Available
-					{/if}
-				</p>
+				<div class="header-meta">
+					<p class="song-count">
+						{#if searchQuery.trim()}
+							{filteredSongs.length} of {data.songs.length} songs
+						{:else}
+							{data.songs.length} Songs Available
+						{/if}
+					</p>
+					<span class="header-divider">·</span>
+					<a href="/admin" class="admin-link">Admin</a>
+				</div>
 			</div>
 			<button
 				class="btn btn-primary download-btn"
@@ -146,9 +150,9 @@
 				disabled={isDownloading || data.songs.length === 0}
 			>
 				{#if isDownloading}
-					<span class="loading loading-spinner"></span>
+					<span class="loading loading-spinner loading-md"></span>
 				{:else}
-					<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+					<svg xmlns="http://www.w3.org/2000/svg" class="download-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
 					</svg>
 				{/if}
@@ -233,11 +237,6 @@
 
 		</div>
 
-		<div class="divider my-10"></div>
-		<div class="text-center pb-10">
-			<a href="/admin" class="link link-neutral text-sm">Admin Access</a>
-		</div>
-
 	</div>
 </div>
 
@@ -283,15 +282,49 @@
 		color: var(--fallback-p, oklch(var(--p)));
 	}
 
+	.header-meta {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		margin-top: 0.25rem;
+	}
+
 	.song-count {
 		opacity: 0.6;
-		margin-top: 0.25rem;
+	}
+
+	.header-divider {
+		opacity: 0.3;
+		font-size: 1rem;
+	}
+
+	.admin-link {
+		font-size: 0.8rem;
+		opacity: 0.45;
+		color: inherit;
+		text-decoration: none;
+		transition: opacity 0.15s;
+	}
+
+	.admin-link:hover {
+		opacity: 0.9;
+		text-decoration: underline;
 	}
 
 	.download-btn {
 		display: flex;
 		align-items: center;
-		gap: 0.5rem;
+		gap: 0.6rem;
+		font-size: 1.2rem;
+		font-weight: 700;
+		padding: 0.75rem 1.5rem;
+		height: auto;
+	}
+
+	.download-icon {
+		width: 1.75rem;
+		height: 1.75rem;
+		flex-shrink: 0;
 	}
 
 	/* ── Search ── */
