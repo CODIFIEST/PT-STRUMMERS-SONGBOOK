@@ -2,17 +2,15 @@
 	import type { PageData } from './$types';
 	let { data }: { data: PageData } = $props();
 
-	let isDownloading = $state(false);
-	let searchQuery = $state('');
-	let showScrollTop = $state(false);
+	let isDownloading = false;
+	let searchQuery = '';
+	let showScrollTop = false;
 
 	function humanReadableName(filename: string): string {
-		// 1. Extract key info before any stripping (_PDF suffix stripped first so e.g. key_G_PDF works)
 		const forKeyDetect = filename.replace(/\.pdf$/i, '').replace(/_PDF$/i, '');
 		const keyMatch = forKeyDetect.match(/KEY[-_]?OF[-_]?([A-G][b#]?)|KEY[-_]([A-G][b#]?)(?!\w)/i);
 		const keyInfo = keyMatch ? ` (Key of ${(keyMatch[1] || keyMatch[2]).toUpperCase()})` : '';
 
-		// 2. Pre-process: protect apostrophe contractions that use _ as separator
 		let name = filename
 			.replace(/\.pdf$/i, '')
 			.replace(/I_ll/gi, 'XILLX')
@@ -23,7 +21,6 @@
 			.replace(/can_t/gi, 'XCANTX')
 			.replace(/won_t/gi, 'XWONTX');
 
-		// 3. Strip file noise — only when clearly a suffix tag (preceded by - or _)
 		name = name
 			.replace(/[-_]v\d+[a-z]*/gi, '')
 			.replace(/[-_]web(?=$|[-_])/gi, '')
@@ -42,30 +39,23 @@
 			.replace(/[-_]beginners?[-_]12[-_]bar[-_]blues/gi, '')
 			.replace(/[-_]12[-_]bar[-_]blues/gi, '')
 			.replace(/[-_]end[-_]of[-_]show/gi, '')
-			// Strip key from display name (various formats in filenames)
 			.replace(/[-_]?KEY[-_]?OF[-_]?[A-G][b#]?/gi, '')
 			.replace(/[-_]?KEY[-_][A-G][b#]?(?!\w)/gi, '')
-			.replace(/MEKEY[-_]OF[-_][A-G][b#]?/gi, 'ME') // e.g. LEAN-ON-MEKEY-OF-A
+			.replace(/MEKEY[-_]OF[-_][A-G][b#]?/gi, 'ME')
 			.replace(/\b\d{4,}\b/g, '')
 			.replace(/\.\d+/g, '');
 
-		// 4. Replace separators with spaces
 		name = name.replace(/[-_]+/g, ' ').replace(/\s{2,}/g, ' ').trim();
+		name = name.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
 
-		// 5. Title case (works on ALL-CAPS too by lowercasing first)
-		name = name.toLowerCase()
-			.replace(/\b\w/g, (c) => c.toUpperCase());
-
-		// 6. Restore apostrophe contractions
 		name = name
-			.replace(/XILLX/gi, "I'll")
-			.replace(/XIVEX/gi, "I've")
-			.replace(/XIMX/gi,  "I'm")
-			.replace(/XDONTX/gi, "Don't")
-			.replace(/XAINTX/gi, "Ain't")
-			.replace(/XCANTX/gi, "Can't")
-			.replace(/XWONTX/gi, "Won't")
-			// Fix dash-based contractions (no underscore in filename)
+			.replace(/Xillx/gi, "I'll")
+			.replace(/Xivex/gi, "I've")
+			.replace(/Ximx/gi,  "I'm")
+			.replace(/Xdontx/gi, "Don't")
+			.replace(/Xaintx/gi, "Ain't")
+			.replace(/Xcantx/gi, "Can't")
+			.replace(/Xwontx/gi, "Won't")
 			.replace(/\bDont\b/g, "Don't")
 			.replace(/\bCant\b/g, "Can't")
 			.replace(/\bWont\b/g, "Won't")
@@ -75,7 +65,6 @@
 
 		return name + keyInfo;
 	}
-
 
 	const filteredSongs = $derived(
 		searchQuery.trim() === ''
@@ -115,14 +104,14 @@
 
 		const content = await zip.generateAsync({ type: 'blob' });
 		const saveAs = fileSaver.saveAs || fileSaver;
-		saveAs(content, 'PT-Strummers-Songbook.zip');
+		saveAs(content, 'PT-Strummers-Christmas-Songbook.zip');
 
 		isDownloading = false;
 	}
 </script>
 
 <svelte:head>
-	<title>PT Strummers Songbook</title>
+	<title>PT Strummers Christmas Songbook</title>
 </svelte:head>
 
 <svelte:window on:scroll={handleScroll} />
@@ -133,7 +122,7 @@
 		<!-- Header -->
 		<div class="header-bar">
 			<div>
-				<h1 class="site-title">PT Strummers Songbook</h1>
+				<h1 class="site-title">🎄 Christmas Songbook</h1>
 				<div class="header-meta">
 					<p class="song-count">
 						{#if searchQuery.trim()}
@@ -147,7 +136,7 @@
 				</div>
 			</div>
 			<button
-				class="btn btn-primary download-btn"
+				class="btn download-btn"
 				on:click={downloadAll}
 				disabled={isDownloading || data.songs.length === 0}
 			>
@@ -253,6 +242,14 @@
 {/if}
 
 <style>
+	/* Christmas accent colours */
+	:root {
+		--xmas-red: #c0392b;
+		--xmas-red-dark: #922b21;
+		--xmas-red-hover: #e74c3c;
+		--xmas-red-light: rgba(192, 57, 43, 0.12);
+	}
+
 	.page-wrapper {
 		min-height: 100vh;
 		background-color: var(--fallback-b2, oklch(var(--b2)));
@@ -276,12 +273,13 @@
 		padding: 1.5rem;
 		border-radius: 1rem;
 		box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+		border-top: 4px solid var(--xmas-red);
 	}
 
 	.site-title {
 		font-size: 2.25rem;
 		font-weight: 700;
-		color: var(--fallback-p, oklch(var(--p)));
+		color: var(--xmas-red);
 	}
 
 	.header-meta {
@@ -321,6 +319,21 @@
 		font-weight: 700;
 		padding: 0.75rem 1.5rem;
 		height: auto;
+		background: var(--xmas-red);
+		color: white;
+		border: none;
+		border-radius: 0.5rem;
+		cursor: pointer;
+		transition: background 0.15s;
+	}
+
+	.download-btn:hover:not(:disabled) {
+		background: var(--xmas-red-hover);
+	}
+
+	.download-btn:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
 	}
 
 	.download-icon {
@@ -362,8 +375,8 @@
 	}
 
 	.search-input:focus {
-		border-color: var(--fallback-p, oklch(var(--p)));
-		box-shadow: 0 0 0 3px color-mix(in oklch, var(--fallback-p, oklch(var(--p))) 20%, transparent);
+		border-color: var(--xmas-red);
+		box-shadow: 0 0 0 3px var(--xmas-red-light);
 	}
 
 	.search-input::placeholder {
@@ -480,8 +493,8 @@
 	}
 
 	.index-link:hover {
-		background: #eff6ff;
-		color: #2563eb;
+		background: #fef2f2;
+		color: var(--xmas-red);
 	}
 
 	.no-results-index {
@@ -505,7 +518,7 @@
 		background: var(--fallback-b1, oklch(var(--b1)));
 		border-radius: 0.75rem;
 		box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-		border-left: 8px solid var(--fallback-p, oklch(var(--p)));
+		border-left: 8px solid var(--xmas-red);
 		transition: box-shadow 0.2s;
 		text-decoration: none;
 	}
@@ -543,7 +556,7 @@
 	}
 
 	.song-card:hover .song-title {
-		color: var(--fallback-p, oklch(var(--p)));
+		color: var(--xmas-red);
 	}
 
 	.song-subtitle {
@@ -565,10 +578,10 @@
 	}
 
 	.song-card:hover .chevron {
-		color: var(--fallback-p, oklch(var(--p)));
+		color: var(--xmas-red);
 	}
 
-	/* ── No results state ── */
+	/* ── No results ── */
 	.no-results-main {
 		display: flex;
 		flex-direction: column;
@@ -590,7 +603,7 @@
 		margin-top: 0.5rem;
 		padding: 0.5rem 1.25rem;
 		border-radius: 0.5rem;
-		background: var(--fallback-p, oklch(var(--p)));
+		background: var(--xmas-red);
 		color: white;
 		font-weight: 600;
 		border: none;
@@ -602,16 +615,15 @@
 		opacity: 0.85;
 	}
 
-	/* ── Scroll to top button ── */
+	/* ── Scroll to top ── */
 	.scroll-top-btn {
-		position: relative; /* needed for tooltip positioning */
 		position: fixed;
 		bottom: 2rem;
 		right: 2rem;
 		width: 3rem;
 		height: 3rem;
 		border-radius: 50%;
-		background: var(--fallback-p, oklch(var(--p)));
+		background: var(--xmas-red);
 		color: white;
 		border: none;
 		cursor: pointer;
@@ -619,8 +631,9 @@
 		align-items: center;
 		justify-content: center;
 		box-shadow: 0 4px 16px rgba(0,0,0,0.2);
-		transition: transform 0.15s, box-shadow 0.15s, opacity 0.2s;
+		transition: transform 0.15s, box-shadow 0.15s;
 		z-index: 50;
+		position: fixed;
 	}
 
 	.scroll-top-btn:hover {
