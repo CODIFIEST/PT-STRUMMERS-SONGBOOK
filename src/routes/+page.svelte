@@ -3,6 +3,7 @@
 	let { data }: { data: PageData } = $props();
 
 	let isDownloading = $state(false);
+	let isMerging = $state(false);
 	let searchQuery = $state('');
 	let showScrollTop = $state(false);
 
@@ -127,6 +128,35 @@
 
 		isDownloading = false;
 	}
+
+	async function mergeAll() {
+		isMerging = true;
+
+		const { PDFDocument } = await import('pdf-lib');
+		const fileSaver = (await import('file-saver')).default;
+
+		// Songs are already sorted alphabetically from the server
+		const mergedPdf = await PDFDocument.create();
+
+		for (const song of data.songs) {
+			try {
+				const response = await fetch(song.url);
+				const arrayBuffer = await response.arrayBuffer();
+				const pdf = await PDFDocument.load(arrayBuffer, { ignoreEncryption: true });
+				const pages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+				pages.forEach(page => mergedPdf.addPage(page));
+			} catch (err) {
+				console.error('Failed to merge', song.name, err);
+			}
+		}
+
+		const mergedBytes = await mergedPdf.save();
+		const blob = new Blob([mergedBytes], { type: 'application/pdf' });
+		const saveAs = fileSaver.saveAs || fileSaver;
+		saveAs(blob, 'PT-Strummers-Songbook.pdf');
+
+		isMerging = false;
+	}
 </script>
 
 <svelte:head>
@@ -154,6 +184,7 @@
 					<a href="/admin" class="admin-link">Admin</a>
 				</div>
 			</div>
+			<div class="header-buttons">
 			<button
 				class="btn btn-primary download-btn"
 				on:click={downloadAll}
@@ -168,6 +199,22 @@
 				{/if}
 				Download All Songs
 			</button>
+			<button
+				class="btn btn-secondary download-btn"
+				on:click={mergeAll}
+				disabled={isMerging || isDownloading || data.songs.length === 0}
+			>
+				{#if isMerging}
+					<span class="loading loading-spinner loading-md"></span>
+				{:else}
+					<svg xmlns="http://www.w3.org/2000/svg" class="download-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+					</svg>
+				{/if}
+				Combine into One PDF
+			</button>
+			</div>
+
 		</div>
 
 		<!-- Search bar -->
@@ -661,5 +708,12 @@
 	.scroll-top-btn:hover .scroll-top-tooltip {
 		opacity: 1;
 		transform: translateY(-50%) translateX(0);
+	}
+
+	.header-buttons {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.75rem;
+		align-items: center;
 	}
 </style>
