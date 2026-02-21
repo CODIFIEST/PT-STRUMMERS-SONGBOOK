@@ -18,13 +18,22 @@
 			.replace(/I_ll/gi, 'XILLX')
 			.replace(/I_ve/gi, 'XIVEX')
 			.replace(/I_m/gi,  'XIMX')
+			.replace(/It_s/gi, 'XITSX')
+			.replace(/_s_/gi,  'XSX')
 			.replace(/don_t/gi, 'XDONTX')
 			.replace(/ain_t/gi, 'XAINTX')
 			.replace(/can_t/gi, 'XCANTX')
 			.replace(/won_t/gi, 'XWONTX');
 
-		// 3. Strip file noise — only when clearly a suffix tag (preceded by - or _)
+		// 3. Strip file noise
 		name = name
+			.replace(/^\d+/, '')
+			.replace(/SYNESIMPLE/gi, 'SYNE')
+			.replace(/[-_]corrected[-_]?\d*/gi, '')
+			.replace(/[-_]easy[-_]version[-_]?\d*/gi, '')
+			.replace(/[-_]simple[-_]version[-_]?\d*/gi, '')
+			.replace(/[-_]version[-_]?\d*/gi, '')
+			.replace(/[-_]easy$/gi, '')
 			.replace(/[-_]v\d+[a-z]*/gi, '')
 			.replace(/[-_]web(?=$|[-_])/gi, '')
 			.replace(/[-_]copy(?=$|[-_])/gi, '')
@@ -32,7 +41,6 @@
 			.replace(/[-_]CCS$/gi, '')
 			.replace(/CCS$/gi, '')
 			.replace(/[-_]short[-_]instr/gi, '')
-			.replace(/[-_]easy[-_]version/gi, '')
 			.replace(/[-_]short[-_]version/gi, '')
 			.replace(/[-_]updated$/gi, '')
 			.replace(/[-_]revis(?:ed|e)?[-_]?\d*/gi, '')
@@ -42,30 +50,31 @@
 			.replace(/[-_]beginners?[-_]12[-_]bar[-_]blues/gi, '')
 			.replace(/[-_]12[-_]bar[-_]blues/gi, '')
 			.replace(/[-_]end[-_]of[-_]show/gi, '')
-			// Strip key from display name (various formats in filenames)
 			.replace(/[-_]?KEY[-_]?OF[-_]?[A-G][b#]?/gi, '')
 			.replace(/[-_]?KEY[-_][A-G][b#]?(?!\w)/gi, '')
-			.replace(/MEKEY[-_]OF[-_][A-G][b#]?/gi, 'ME') // e.g. LEAN-ON-MEKEY-OF-A
+			.replace(/MEKEY[-_]OF[-_][A-G][b#]?/gi, 'ME')
+			.replace(/[-_]\d{4}\b/g, '')
 			.replace(/\b\d{4,}\b/g, '')
 			.replace(/\.\d+/g, '');
 
 		// 4. Replace separators with spaces
 		name = name.replace(/[-_]+/g, ' ').replace(/\s{2,}/g, ' ').trim();
 
-		// 5. Title case (works on ALL-CAPS too by lowercasing first)
+		// 5. Title case (lowercasing first handles ALL-CAPS files)
 		name = name.toLowerCase()
 			.replace(/\b\w/g, (c) => c.toUpperCase());
 
 		// 6. Restore apostrophe contractions
 		name = name
-			.replace(/XILLX/gi, "I'll")
-			.replace(/XIVEX/gi, "I've")
-			.replace(/XIMX/gi,  "I'm")
-			.replace(/XDONTX/gi, "Don't")
-			.replace(/XAINTX/gi, "Ain't")
-			.replace(/XCANTX/gi, "Can't")
-			.replace(/XWONTX/gi, "Won't")
-			// Fix dash-based contractions (no underscore in filename)
+			.replace(/Xillx/gi, "I'll")
+			.replace(/Xivex/gi, "I've")
+			.replace(/Ximx/gi,  "I'm")
+			.replace(/Xitsx/gi, "It's")
+			.replace(/Xsx/gi,   "'s")
+			.replace(/Xdontx/gi, "Don't")
+			.replace(/Xaintx/gi, "Ain't")
+			.replace(/Xcantx/gi, "Can't")
+			.replace(/Xwontx/gi, "Won't")
 			.replace(/\bDont\b/g, "Don't")
 			.replace(/\bCant\b/g, "Can't")
 			.replace(/\bWont\b/g, "Won't")
@@ -75,7 +84,6 @@
 
 		return name + keyInfo;
 	}
-
 
 	const filteredSongs = $derived(
 		searchQuery.trim() === ''

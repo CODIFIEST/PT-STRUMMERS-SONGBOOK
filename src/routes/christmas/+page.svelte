@@ -2,26 +2,38 @@
 	import type { PageData } from './$types';
 	let { data }: { data: PageData } = $props();
 
-	let isDownloading = false;
-	let searchQuery = '';
-	let showScrollTop = false;
+	let isDownloading = $state(false);
+	let searchQuery = $state('');
+	let showScrollTop = $state(false);
 
 	function humanReadableName(filename: string): string {
+		// 1. Extract key info before any stripping (_PDF suffix stripped first so e.g. key_G_PDF works)
 		const forKeyDetect = filename.replace(/\.pdf$/i, '').replace(/_PDF$/i, '');
 		const keyMatch = forKeyDetect.match(/KEY[-_]?OF[-_]?([A-G][b#]?)|KEY[-_]([A-G][b#]?)(?!\w)/i);
 		const keyInfo = keyMatch ? ` (Key of ${(keyMatch[1] || keyMatch[2]).toUpperCase()})` : '';
 
+		// 2. Pre-process: protect apostrophe contractions that use _ as separator
 		let name = filename
 			.replace(/\.pdf$/i, '')
 			.replace(/I_ll/gi, 'XILLX')
 			.replace(/I_ve/gi, 'XIVEX')
 			.replace(/I_m/gi,  'XIMX')
+			.replace(/It_s/gi, 'XITSX')
+			.replace(/_s_/gi,  'XSX')
 			.replace(/don_t/gi, 'XDONTX')
 			.replace(/ain_t/gi, 'XAINTX')
 			.replace(/can_t/gi, 'XCANTX')
 			.replace(/won_t/gi, 'XWONTX');
 
+		// 3. Strip file noise
 		name = name
+			.replace(/^\d+/, '')
+			.replace(/SYNESIMPLE/gi, 'SYNE')
+			.replace(/[-_]corrected[-_]?\d*/gi, '')
+			.replace(/[-_]easy[-_]version[-_]?\d*/gi, '')
+			.replace(/[-_]simple[-_]version[-_]?\d*/gi, '')
+			.replace(/[-_]version[-_]?\d*/gi, '')
+			.replace(/[-_]easy$/gi, '')
 			.replace(/[-_]v\d+[a-z]*/gi, '')
 			.replace(/[-_]web(?=$|[-_])/gi, '')
 			.replace(/[-_]copy(?=$|[-_])/gi, '')
@@ -29,7 +41,6 @@
 			.replace(/[-_]CCS$/gi, '')
 			.replace(/CCS$/gi, '')
 			.replace(/[-_]short[-_]instr/gi, '')
-			.replace(/[-_]easy[-_]version/gi, '')
 			.replace(/[-_]short[-_]version/gi, '')
 			.replace(/[-_]updated$/gi, '')
 			.replace(/[-_]revis(?:ed|e)?[-_]?\d*/gi, '')
@@ -42,16 +53,24 @@
 			.replace(/[-_]?KEY[-_]?OF[-_]?[A-G][b#]?/gi, '')
 			.replace(/[-_]?KEY[-_][A-G][b#]?(?!\w)/gi, '')
 			.replace(/MEKEY[-_]OF[-_][A-G][b#]?/gi, 'ME')
+			.replace(/[-_]\d{4}\b/g, '')
 			.replace(/\b\d{4,}\b/g, '')
 			.replace(/\.\d+/g, '');
 
+		// 4. Replace separators with spaces
 		name = name.replace(/[-_]+/g, ' ').replace(/\s{2,}/g, ' ').trim();
-		name = name.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
 
+		// 5. Title case (lowercasing first handles ALL-CAPS files)
+		name = name.toLowerCase()
+			.replace(/\b\w/g, (c) => c.toUpperCase());
+
+		// 6. Restore apostrophe contractions
 		name = name
 			.replace(/Xillx/gi, "I'll")
 			.replace(/Xivex/gi, "I've")
 			.replace(/Ximx/gi,  "I'm")
+			.replace(/Xitsx/gi, "It's")
+			.replace(/Xsx/gi,   "'s")
 			.replace(/Xdontx/gi, "Don't")
 			.replace(/Xaintx/gi, "Ain't")
 			.replace(/Xcantx/gi, "Can't")
